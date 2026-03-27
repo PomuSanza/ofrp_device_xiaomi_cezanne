@@ -39,57 +39,53 @@ on:
         required: true
         default: true
 
-env:
-  WORKSPACE_DIR: 'twrp-build'
-  CCACHE_DIR: '/tmp/ccache'
-
 jobs:
   build:
     name: Build TWRP for ${{ inputs.DEVICE_CODENAME }}
     runs-on: ubuntu-latest
-    
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-    
-    - name: Set Build Variables
-      id: vars
+    - name: Clean-up
+      uses: rokibhasansagar/slimhub_actions@main
+
+    - name: Build Environment
       run: |
-        echo "BUILD_DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
-        echo "BUILD_TIME=$(date +%H%M%S)" >> $GITHUB_ENV
-    
-    - name: Maximize Build Space
+        sudo apt install aria2 linux-modules-extra-$(uname -r) zram-tools -y
+        git clone https://gitlab.com/OrangeFox/misc/scripts.git -b master
+        cd scripts
+        sudo bash setup/android_build_env.sh
+        cd .. && rm -rf scripts
+        # Redendent apt cleanup
+        sudo apt autoclean >/dev/null || true
+        sudo apt autoremove -qy 2>/dev/null || true
+        sudo rm -rf /var/cache/apt/archives/ 2>/dev/null || true
+
+    - name: Maximize build space
       uses: easimon/maximize-build-space@master
       with:
-        root-reserve-mb: 2048
-        swap-size-mb: 4096
-        remove-dotnet: 'true'
-        remove-android: 'true'
-        remove-haskell: 'true'
-    
+        root-reserve-mb: '3072'
+
+    - name: Checkout
+      uses: actions/checkout@main
+
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
       if: inputs.USE_CCACHE
       with:
-        key: ${{ github.run_id }}
-        max-size: 2G
+        max-size: "2G"
         create-symlink: true
-    
-    - name: Setup Build Environment
+
+    - name: Setup zram
       run: |
-        mkdir -p ${GITHUB_WORKSPACE}/${WORKSPACE_DIR}
-        cd ${GITHUB_WORKSPACE}/${WORKSPACE_DIR}
-        
-        # Set git config
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        
-        # Initialize repo
-        repo init \
-          --depth=1 \
-          -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git \
-          -b ${{ inputs.TWRP_MANIFEST_BRANCH }}
-    
+        sudo modprobe zram
+        sudo sed -i 's/^#PERCENT=50/PERCENT=90/' /etc/default/zramswap
+        sudo sed -i 's/^#PRIORITY=100/PRIORITY=1000/' /etc/default/zramswap
+        sudo systemctl restart zramswap
+        zramctl
+
     - name: Sync Source Code
       run: |
         cd ${GITHUB_WORKSPACE}/${WORKSPACE_DIR}
@@ -130,26 +126,6 @@ jobs:
         cd ./${{ inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
         echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-    
-    - name: Setup Build Environment Variables
-      run: |
-        cd ${GITHUB_WORKSPACE}/${WORKSPACE_DIR}
-        
-        # Source build environment
-        source build/envsetup.sh
-        
-        # Set build variables
-        if [[ "${{ inputs.USE_CCACHE }}" == "true" ]]; then
-          export USE_CCACHE=1
-          export CCACHE_EXEC=/usr/bin/ccache
-          ccache -M 2G
-          ccache -s
-        fi
-        
-        export ALLOW_MISSING_DEPENDENCIES=true
-        
-        # Lunch the device
-        lunch twrp_${{ inputs.DEVICE_CODENAME }}-eng
     
     - name: Clean Previous Build
       if: inputs.CLEAN_BUILD
