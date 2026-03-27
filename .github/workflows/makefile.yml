@@ -89,6 +89,7 @@ jobs:
     - name: Sync Source Code
       run: |
         cd ${GITHUB_WORKSPACE}/${WORKSPACE_DIR}
+        sudo apt-get install -y repo
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
         
         # Apply common patches if needed
