@@ -14,7 +14,8 @@ echo -e "\x1b[96mcezanne: 开始添加OrangeFox Vars...\x1b[m"
 # 设置显示在关于页面里的维护人员名称
 export OF_MAINTAINER=AneglaCool,ymdzq,ZhcnPanda
 # 设置版本号为日期
-export FOX_VERSION=$(date +%y.%m.%d)
+//export FOX_VERSION=$(date +%y.%m.%d)
+export FOX_MAINTAINER_PATCH_VERSION="12.1_1"
 
 ## 添加功能
 # 使用完整版ps命令
