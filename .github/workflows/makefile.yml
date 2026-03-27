@@ -12,15 +12,11 @@ jobs:
       uses: easimon/maximize-build-space@master
       with:
         root-reserve-mb: 1024
-        swap-size-mb: 10240
+        swap-size-mb: 4096
         remove-dotnet: 'true'
         temp-reserve-mb: 1024
         remove-android: 'true'
         remove-haskell: 'true'
-        overprovision-lvm: false
-        mount-path: /home/runner/work/ofrp_device_xiaomi_cezanne/ofrp_device_xiaomi_cezanne
-        root-pv-loop-path: /pv.img
-        temp-pv-loop-path: /tmp/tmp-pv.img
 
     - name: Check Out
       uses: actions/checkout@main
