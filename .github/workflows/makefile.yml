@@ -74,7 +74,7 @@ jobs:
     - name: Clone Device Tree
       run: |
         cd ${GITHUB_WORKSPACE}/workspace
-        git clone https://github.com/coolscode/ofrp_device_xiaomi_cezanne.git -b android-12 ./device/xiaomi/cezanne
+        git clone https://github.com/PomuSanza/ofrp_device_xiaomi_cezanne.git -b android-12 ./device/xiaomi/cezanne
     - name: Building
       run: |
         cd ${GITHUB_WORKSPACE}/workspace
@@ -82,7 +82,7 @@ jobs:
         lunch twrp_cezanne-eng
         mka recoveryimage -j$(nproc --all)
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cezanne_twrp-12.1
         path: workspace/out/target/product/cezanne/recovery.img
