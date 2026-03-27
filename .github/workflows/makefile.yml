@@ -160,7 +160,7 @@ jobs:
         
         # Copy recovery image
         cp out/target/product/${{ inputs.DEVICE_CODENAME }}/recovery.img \
-          ${GITHUB_WORKSPACE}/artifacts/twrp-${{ inputs.DEVICE_CODENAME }}-${{ env.BUILD_DATE }}.img
+          ${GITHUB_WORKSPACE}/artifacts/twrp-${{ inputs.DEVICE_CODENAME }}-$(date +'%Y-%m-%d %H:%M:%S').img
         
         # Copy any zip files (if available)
         if ls out/target/product/${{ inputs.DEVICE_CODENAME }}/*.zip 1> /dev/null 2>&1; then
@@ -173,13 +173,10 @@ jobs:
         TWRP Build Information
         ======================
         Device: ${{ inputs.DEVICE_CODENAME }}
-        Build Date: ${{ env.BUILD_DATE }}
-        Build Time: ${{ env.BUILD_TIME }}
+        Build Date: $(date +'%Y-%m-%d %H:%M:%S')
         TWRP Branch: ${{ inputs.TWRP_MANIFEST_BRANCH }}
         Device Tree: ${{ inputs.DEVICE_TREE_URL }}
         Device Tree Branch: ${{ inputs.DEVICE_TREE_BRANCH }}
-        Commit ID: ${{ env.COMMIT_ID }}
-        Short Commit: ${{ env.COMMIT_SHORT }}
         CCache Enabled: ${{ inputs.USE_CCACHE }}
         Clean Build: ${{ inputs.CLEAN_BUILD }}
         
@@ -193,7 +190,7 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: twrp-${{ inputs.DEVICE_CODENAME }}-${{ env.BUILD_DATE }}
+        name: twrp-${{ inputs.DEVICE_CODENAME }}-$(date +'%Y-%m-%d %H:%M:%S')
         path: |
           artifacts/*
         retention-days: 7
@@ -203,18 +200,17 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: artifacts/*
-        name: TWRP for ${{ inputs.DEVICE_CODENAME }} - ${{ env.BUILD_DATE }}
-        tag_name: twrp-${{ inputs.DEVICE_CODENAME }}-${{ env.BUILD_DATE }}
+        name: TWRP for ${{ inputs.DEVICE_CODENAME }} - $(date +'%Y%m%d')
+        tag_name: twrp-${{ inputs.DEVICE_CODENAME }}-$(date +'%Y%m%d-%H%M%S')
         body: |
           ## TWRP Recovery Build
           
           ### Build Information
           - **Device**: ${{ inputs.DEVICE_CODENAME }}
-          - **Build Date**: ${{ env.BUILD_DATE }}
+          - **Build Date**: $(date +'%Y-%m-%d %H:%M:%S')
           - **TWRP Branch**: ${{ inputs.TWRP_MANIFEST_BRANCH }}
           - **Device Tree**: [${{ inputs.DEVICE_TREE_URL }}](${{ inputs.DEVICE_TREE_URL }})
           - **Device Tree Branch**: ${{ inputs.DEVICE_TREE_BRANCH }}
-          - **Latest Commit**: [${{ env.COMMIT_SHORT }}](${{ inputs.DEVICE_TREE_URL }}/commit/${{ env.COMMIT_ID }})
           
           ### Usage
           1. Download the recovery.img file
